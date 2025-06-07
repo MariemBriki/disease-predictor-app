@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --primary-hover: #0b5ed7;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .symptom-checkbox {
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .symptom-checkbox:hover {
+            transform: translateX(5px);
+        }
+
+        .result-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .probability-plot {
+            max-width: 100%;
+            height: auto;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .disclaimer {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .top-diseases {
+            margin: 1.5rem 0;
+        }
+
+        .symptom-importance {
+            margin: 1.5rem 0;
+        }
+
+        .category-title {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .category-title i {
+            font-size: 1.2rem;
+        }
+
+        .predict-button {
+            position: sticky;
+            z-index: 1000;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .predict-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .list-group-item {
+            border-radius: 0.5rem !important;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .list-group-item:hover {
+            transform: translateX(5px);
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            padding: 0.5rem 0.75rem;
+            font-weight: 500;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Category-specific icons */
+        .category-icon {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="text-center mb-4">
+            <i class="bi bi-heart-pulse-fill me-2"></i>
+            Disease Predictor
+        </h1>
+        
+        <div class="disclaimer">
+            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Important Medical Disclaimer</h5>
+            <p>This tool is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
+            <p>If you are experiencing a medical emergency, call your local emergency services immediately.</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-clipboard2-pulse me-2"></i>
+                            Select Your Symptoms
+                        </h5>
+                        <form method="POST" id="symptomForm">
+                            <div class="button-container">
+                                <button type="submit" class="predict-button">
+                                    <i class="bi bi-search"></i>
+                                    Predict Disease
+                                </button>
+                            </div>
+                            
+                            {% if error_message %}
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                                {{ error_message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            {% endif %}
+                            
+                            {% for category, symptoms in categorized_symptoms.items() %}
+                                {% if symptoms %}
+                                    <div class="category-title">
+                                        <i class="bi bi-{% if category == 'Respiratory' %}lungs{% elif category == 'Gastrointestinal' %}stomach{% elif category == 'General' %}activity{% elif category == 'Neurological' %}brain{% elif category == 'Skin' %}body{% elif category == 'Musculoskeletal' %}bone{% elif category == 'Cardiovascular' %}heart{% elif category == 'Urinary' %}droplet{% elif category == 'Endocrine' %}hormone{% elif category == 'Immune' %}shield{% elif category == 'Eyes' %}eye{% elif category == 'Liver' %}organ{% else %}list{% endif %}"></i>
+                                        {{ category }}
+                                    </div>
+                                    <div class="row">
+                                        {% for symptom in symptoms %}
+                                        <div class="col-md-6">
+                                            <div class="form-check symptom-checkbox">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       name="symptoms" value="{{ symptom }}"
+                                                       id="symptom_{{ loop.index0 }}_{{ category }}"
+                                                       {% if symptom in selected_symptoms %}checked{% endif %}>
+                                                <label class="form-check-label" for="symptom_{{ loop.index0 }}_{{ category }}">
+                                                    {{ prettify_symptom(symptom) }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div class="button-container">
+                                <button type="submit" class="predict-button">
+                                    <i class="bi bi-search"></i>
+                                    Predict Disease
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {% if disease_name %}
+            <div class="col-md-6">
+                <div class="result-section">
+                    <h3 class="text-center mb-3">
+                        <i class="bi bi-clipboard2-check me-2"></i>
+                        Prediction Result
+                    </h3>
+                    <h4 class="text-center text-primary mb-4">{{ disease_name }}</h4>
+                    
+                    <div class="top-diseases">
+                        <h5><i class="bi bi-list-ol me-2"></i>Top 5 Possible Conditions:</h5>
+                        <ul class="list-group">
+                            {% for disease, prob in top_diseases %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ disease }}
+                                <span class="badge bg-primary rounded-pill">{{ "%.1f"|format(prob * 100) }}%</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="medical-sources mt-4">
+                        <h5><i class="bi bi-book-medical me-2"></i>Learn More About {{ disease_name }}:</h5>
+                        <div class="list-group">
+                            <a href="https://medlineplus.gov/{{ disease_name.lower().replace(' ', '') }}.html" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                               target="_blank" rel="noopener noreferrer">
+                                <div>
+                                    <i class="bi bi-journal-medical me-2"></i>
+                                    MedlinePlus (NIH)
+                                </div>
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                            <a href="https://www.cdc.gov/search/index.html?query={{ disease_name.lower().replace(' ', '+') }}" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                               target="_blank" rel="noopener noreferrer">
+                                <div>
+                                    <i class="bi bi-shield-check me-2"></i>
+                                    Centers for Disease Control (CDC)
+                                </div>
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            These links provide reliable medical information from trusted government health organizations. Always consult with your healthcare provider for personalized medical advice.
+                        </div>
+                    </div>
+
+                    <div class="symptom-importance">
+                        <h5><i class="bi bi-graph-up me-2"></i>How Your Symptoms Affect the Prediction:</h5>
+                        <ul class="list-group">
+                            {% for symptom, importance in symptom_importance.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ symptom }}
+                                <span class="badge bg-info rounded-pill">{{ "%.2f"|format(importance * 100) }}%</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <h5 class="mb-3"><i class="bi bi-bar-chart-fill me-2"></i>Detailed Probability Distribution:</h5>
+                    <img src="{{ url_for('static', filename=plot_path.split('/')[-1]) }}" 
+                         alt="Disease Probabilities" 
+                         class="probability-plot">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">
+                        <i class="bi bi-code-square me-2"></i>
+                        Created by Mariem Briki
+                    </p>
+                    <p class="mb-0 text-muted">
+                        <small>Python for Programming Class | Bachelor of Business Analytics 2024-2025</small>
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <a href="https://github.com/MariemBriki" 
+                       class="btn btn-outline-dark me-2" 
+                       target="_blank" 
+                       rel="noopener noreferrer">
+                        <i class="bi bi-github me-1"></i>
+                        GitHub
+                    </a>
+                    <a href="https://www.linkedin.com/in/mariem-briki-638081265/" 
+                       class="btn btn-outline-primary" 
+                       target="_blank" 
+                       rel="noopener noreferrer">
+                        <i class="bi bi-linkedin me-1"></i>
+                        LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
