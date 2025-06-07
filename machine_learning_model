@@ -1,0 +1,7 @@
+     # Data Folder
+     This folder contains the model files and data used by the disease predictor application:
+     - Lab2_Disease_Prediction: main python script
+     - disease_model.pkl: The trained machine learning model
+     - label_encoder.pkl: Label encoder for disease names
+     - symptoms_list.pkl: List of symptoms used by the model
+     
